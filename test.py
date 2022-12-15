@@ -40,15 +40,15 @@ def compare_strings(a, b):
 data = [
     {
         "id": 1,
-        "judul": "kunci kurang"
+        "judul": "kunci kurang batu baik masuk angin"
     },
     {
         "id": 2,
-        "judul": "kunci rusak"
+        "judul": "rusak rusa luas makin kuat"
     },
     {
         "id": 3,
-        "judul": "rusak kurang"
+        "judul": "baca buku di kantin bursa efek luas"
     },
 ]
 # wordInput = input("masukkan kata: ")
@@ -82,7 +82,7 @@ def addChild(suf, parent, tree, index):
                 if index not in child.index:
                     child.index.append(index)
                 return tree
-            return addChild(suf=sufCut, parent=child.name, tree=tree, index=index)
+            return addChild(suf=sufCut, parent=child.name, tree=result, index=index)
         child.name = sameString
         if child.children == []:
             print("gaada anak")
@@ -115,9 +115,9 @@ def makeTree2(data):
                 print("=================================================")
                 suf = word[i:]
                 addChild(suf=suf, parent="root", tree=root, index=wordIndex)
-            # for pre, fill, node in RenderTree(root):
-            #     print("%s%s" % (pre, node.name))
-            print(RenderTree(root))
+            for pre, fill, node in RenderTree(root):
+                print("%s%s" % (pre, node.name))
+            # print(RenderTree(root))
 
 
 def makeTree(arrayInput):
