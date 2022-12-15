@@ -99,14 +99,17 @@ def makeTree(root, word):
                 name = str(k.name)
                 if name == "root":
                     continue
+
+                if j == 0:
+                    k.name += nextChar
                 # print(k.name)
                 # rule 1
                 # print(k)
                 # print("node = ", nodeToString(k))
-                if nodeToString(k) == beta and Node(beta+nextChar) not in RenderTree(root):
-                    print("RULE 1")
-                    k.name += nextChar
-                    break
+                # if nodeToString(k) == beta and Node(beta+nextChar) not in RenderTree(root):
+                #     print("RULE 1")
+                #     k.name += nextChar
+                #     break
                 # rule 2
                 if beta == "" and checkExist(root, nextChar) == False:
                     print("RULE 2A")
@@ -129,15 +132,15 @@ def makeTree(root, word):
                     nodeToString(k), beta+nextChar)
                 if statusMix == True and sameStringMix == beta+nextChar:
                     print("RULE 3")
-                    continue
+                    break
             for pre, fill, node in RenderTree(root):
                 print("%s%s" % (pre, node.name))
 
 
-titles = ["tunggang", "tanggung"]
+titles = ["banana"]
 tree = makeTreeFromArray(titles)
-for pre, fill, node in RenderTree(tree):
-    print("%s%s" % (pre, node.name))
+# for pre, fill, node in RenderTree(tree):
+#     print("%s%s" % (pre, node.name))
 
 # print(compare_strings("abxac", "xa"))
 # print(checkChildren("Jet", dan))
