@@ -40,15 +40,15 @@ def compare_strings(a, b):
 data = [
     {
         "id": 1,
-        "judul": "kunci kurang batu baik masuk angin"
+        "judul": "kunci kurang"
     },
     {
         "id": 2,
-        "judul": "rusak rusa luas makin kuat"
+        "judul": "kunci rusak"
     },
     {
         "id": 3,
-        "judul": "baca buku di kantin bursa efek luas"
+        "judul": "rusak kurang"
     },
 ]
 # wordInput = input("masukkan kata: ")
@@ -57,32 +57,17 @@ data = [
 
 
 def addChild(suf, parent, tree, index):
-    for pre, fill, node in RenderTree(tree):
-        print("%s%s" % (pre, node.name))
+    # for pre, fill, node in RenderTree(tree):
+    #     print("%s%s" % (pre, node.name))
     result = find_by_attr(tree, parent, maxlevel=2)
-    # r = Resolver('name')
-    # result = r.get(node=tree, path="/"+parent)
     print("res", result)
     print("tree, ", tree)
     print("parent, ", parent)
-    # name = result.name
     children = result.children
     for child in children:
-        # if suf == "$":
-        #     continue
         print("+++++++++++++++++++++++++++++++++++++++++++++=")
-        # print(child)
         print("suf: ", suf)
         print("node: ", child.name)
-        # if suf == "$" and parent == "root":
-        #     print("masuk suf dollar")
-        #     for child2 in tree.children:
-        #         print(child2.name)
-        #         if child2.name == "$":
-        #             print("masuk if dolar")
-        #             oldIndex = child2.index
-        #             # child2.index = oldIndex.append(index)
-        #             return tree
         status, sameString, parentNameCut, sufCut = compare_strings(
             child.name, suf)
         if status == False:
@@ -91,8 +76,13 @@ def addChild(suf, parent, tree, index):
         if parentNameCut == "":
             print("normal")
             if sufCut == "":
+                print(child)
+                print("node index =", type(child.index))
+                print("index saat ini: ", index)
+                if index not in child.index:
+                    child.index.append(index)
                 return tree
-            return addChild(suf=sufCut, parent=child.name, tree=tree, index=[index])
+            return addChild(suf=sufCut, parent=child.name, tree=tree, index=index)
         child.name = sameString
         if child.children == []:
             print("gaada anak")
@@ -104,10 +94,10 @@ def addChild(suf, parent, tree, index):
         print("anak siapa: ", child.name)
         nodeParentCut = Node(parentNameCut, index=[index])
         nodeParentCut.children = child.children
-        print("-------------------------------------------")
-        for pre, fill, node in RenderTree(nodeParentCut):
-            print("%s%s" % (pre, node.name))
-        print("-------------------------------------------")
+        # print("-------------------------------------------")
+        # for pre, fill, node in RenderTree(nodeParentCut):
+        #     print("%s%s" % (pre, node.name))
+        # print("-------------------------------------------")
         nodeParentCut.parent = child
         Node(sufCut, parent=child, index=[index])
         return tree
@@ -118,15 +108,16 @@ def addChild(suf, parent, tree, index):
 def makeTree2(data):
     root = Node("root")
     for title in data:
-        for word in title.judul:
-            wordIndex = title.id
+        for word in title["judul"].split():
+            wordIndex = title["id"]
             word += "$"
             for i in range(len(word)):
                 print("=================================================")
                 suf = word[i:]
                 addChild(suf=suf, parent="root", tree=root, index=wordIndex)
-            for pre, fill, node in RenderTree(root):
-                print("%s%s" % (pre, node.name))
+            # for pre, fill, node in RenderTree(root):
+            #     print("%s%s" % (pre, node.name))
+            print(RenderTree(root))
 
 
 def makeTree(arrayInput):
