@@ -40,15 +40,15 @@ def compare_strings(a, b):
 data = [
     {
         "id": 1,
-        "judul": "kunci kurang batu baik masuk angin"
+        "judul": "buku bacaan baru di perpusnas"
     },
     {
         "id": 2,
-        "judul": "rusak rusa luas makin kuat"
+        "judul": "barcelona kalah dari real madrid"
     },
     {
         "id": 3,
-        "judul": "baca buku di kantin bursa efek luas"
+        "judul": "mudik lebaran sebentar lagi"
     },
 ]
 # wordInput = input("masukkan kata: ")
@@ -59,7 +59,14 @@ data = [
 def addChild(suf, parent, tree, index):
     # for pre, fill, node in RenderTree(tree):
     #     print("%s%s" % (pre, node.name))
-    result = find_by_attr(tree, parent, maxlevel=2)
+    result = findall_by_attr(tree, parent, maxlevel=2)
+    try:
+        # Try to return the first found node and stop the search
+        result = result[0]
+        # print(node.name)
+    except StopIteration:
+        # Handle the case where there are no matching nodes
+        print("No matching nodes found")
     print("res", result)
     print("tree, ", tree)
     print("parent, ", parent)
