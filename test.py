@@ -5,6 +5,9 @@ from anytree import *
 
 def nodeToString(node):
     node = str(node)
+    delimiter = ","
+    index = node.index(delimiter)
+    node = node[:index]
     # remove 12 first character on node
     node = node[12:]
     size = len(node)
@@ -48,7 +51,7 @@ data = [
     },
     {
         "id": 3,
-        "judul": "bareng barcelona"
+        "judul": "baru"
     },
 ]
 # wordInput = input("masukkan kata: ")
@@ -124,81 +127,95 @@ def makeTree2(data):
                 addChild(suf=suf, parent="root", tree=root, index=wordIndex)
             for pre, fill, node in RenderTree(root):
                 print("%s%s" % (pre, node.name))
-            print(RenderTree(root))
+            # print(RenderTree(root))
+    return root
 
 
-def makeTree(arrayInput):
-    root = Node("root")
-    for word in arrayInput:
-        word += "$"
-        for i in range(len(word)):
-            # children = root.children
-            # print(children)
-            addSuf = False
-            suf = word[i:]
-            # print(suf)
-            for node in LevelOrderIter(root, maxlevel=2):
-                name = str(node.name)
-                # print(name)
-                if name != "root" and name != "$":
-                    status, sameString, parentNameCut, sufCut = compare_strings(
-                        name, suf)
-                    # print(status)
-                    if status == True:
-                        print("suf: ", suf)
-                        print("node yang sama: ", node.name)
-                        print("ortunya: ", node.parent.name)
-                        print("anaknya: ", node.children)
-                        if node.children == []:
-                            print("anak kosong")
-                            if node.parent != root:
-                                # print("ini")
-                                break
-                            # else:
-                            # print("suf: ", suf)
-                            # print("edge: ", node.name)
-                            node.name = sameString
-                            pastSuffix = name.removeprefix(sameString)
-                            suf = suf.removeprefix(sameString)
-                            if suf != "":
-                                Node(suf, parent=node)
-                            if pastSuffix != "":
-                                Node(pastSuffix, parent=node)
-                            addSuf = True
-                        if node.children != []:
-                            print("ada anak")
-                            if node.parent != root:
-                                break
-                            # else:
-                            # print(suf)
-                            # print("edge: ", node.name)
-                            node.name = sameString
-                            if name.removeprefix(sameString) != "":
-                                pastSuffix = Node(
-                                    name.removeprefix(sameString))
-                                pastSuffix.children = node.children
-                                suf = suf.removeprefix(sameString)
-                                if suf != "":
-                                    pastSuffix.parent = node
-                                    Node(suf, parent=node)
-                                addSuf = True
-                            else:
-                                suf = suf.removeprefix(sameString)
-                                if suf != "":
-                                    Node(suf, parent=node)
-                                addSuf = True
-                    # elif status == False and suf in children:
-                    #     break
-                    # else:
-                    #     Node(suf, parent=root)
-            if addSuf == False:
-                Node(suf, parent=root)
-            for pre, fill, node in RenderTree(root):
-                print("%s%s" % (pre, node.name))
-    # print(children)
+def searchTree(tree, string):
+    print(RenderTree(tree))
+    for node in PostOrderIter(tree):
+        print(nodeToString(node))
+        if nodeToString(node) == string:
+            print("node ketemu: ", node.name)
+            print("node index: ", node.index)
+            return "node ketemu di tree"
 
 
-makeTree2(data)
+gst = makeTree2(data)
+kata = input("masukkan kata yang ingin dicari: ")
+print(searchTree(gst, kata))
+
+# def makeTree(arrayInput):
+#     root = Node("root")
+#     for word in arrayInput:
+#         word += "$"
+#         for i in range(len(word)):
+#             # children = root.children
+#             # print(children)
+#             addSuf = False
+#             suf = word[i:]
+#             # print(suf)
+#             for node in LevelOrderIter(root, maxlevel=2):
+#                 name = str(node.name)
+#                 # print(name)
+#                 if name != "root" and name != "$":
+#                     status, sameString, parentNameCut, sufCut = compare_strings(
+#                         name, suf)
+#                     # print(status)
+#                     if status == True:
+#                         print("suf: ", suf)
+#                         print("node yang sama: ", node.name)
+#                         print("ortunya: ", node.parent.name)
+#                         print("anaknya: ", node.children)
+#                         if node.children == []:
+#                             print("anak kosong")
+#                             if node.parent != root:
+#                                 # print("ini")
+#                                 break
+#                             # else:
+#                             # print("suf: ", suf)
+#                             # print("edge: ", node.name)
+#                             node.name = sameString
+#                             pastSuffix = name.removeprefix(sameString)
+#                             suf = suf.removeprefix(sameString)
+#                             if suf != "":
+#                                 Node(suf, parent=node)
+#                             if pastSuffix != "":
+#                                 Node(pastSuffix, parent=node)
+#                             addSuf = True
+#                         if node.children != []:
+#                             print("ada anak")
+#                             if node.parent != root:
+#                                 break
+#                             # else:
+#                             # print(suf)
+#                             # print("edge: ", node.name)
+#                             node.name = sameString
+#                             if name.removeprefix(sameString) != "":
+#                                 pastSuffix = Node(
+#                                     name.removeprefix(sameString))
+#                                 pastSuffix.children = node.children
+#                                 suf = suf.removeprefix(sameString)
+#                                 if suf != "":
+#                                     pastSuffix.parent = node
+#                                     Node(suf, parent=node)
+#                                 addSuf = True
+#                             else:
+#                                 suf = suf.removeprefix(sameString)
+#                                 if suf != "":
+#                                     Node(suf, parent=node)
+#                                 addSuf = True
+#                     # elif status == False and suf in children:
+#                     #     break
+#                     # else:
+#                     #     Node(suf, parent=root)
+#             if addSuf == False:
+#                 Node(suf, parent=root)
+#             for pre, fill, node in RenderTree(root):
+#                 print("%s%s" % (pre, node.name))
+#     # print(children)
+
+
 # print(children)
 # print(suf)
 # suftree.append(suf)
