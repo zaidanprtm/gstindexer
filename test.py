@@ -43,15 +43,15 @@ def compare_strings(a, b):
 data = [
     {
         "id": 1,
-        "judul": "baca"
+        "judul": "cata"
     },
     {
         "id": 2,
-        "judul": "buku"
+        "judul": "hatt"
     },
     {
         "id": 3,
-        "judul": "baru"
+        "judul": "actttt"
     },
 ]
 # wordInput = input("masukkan kata: ")
@@ -131,19 +131,46 @@ def makeTree2(data):
     return root
 
 
-def searchTree(tree, string):
-    print(RenderTree(tree))
-    for node in PostOrderIter(tree):
-        print(nodeToString(node))
-        if nodeToString(node) == string:
-            print("node ketemu: ", node.name)
-            print("node index: ", node.index)
-            return "node ketemu di tree"
+def searchTree(root, arrWord):
+    # print(RenderTree(tree))
+    # for node in PostOrderIter(tree):
+    #     # print(nodeToString(node))
+    #     if nodeToString(node) == string:
+    #         print(nodeToString(node))
+    #         # print("node ketemu: ", node.name)
+    #         print("node index: ", node.index)
+    #         return "node ketemu di tree"
+    traverseResult = []
+    traverseResult2 = []
+    for word in arrWord.split():
+        result = []
+        tree = root
+        word += "$"
+        for i in range(len(word)):
+            char = word[i]
+            find = search_char_in_tree(tree, char)
+            if find:
+                tree = find
+                traverseResult.append(find)
+                result.append(find)
+        traverseResult2.append(result[-1])
+    return traverseResult, traverseResult2
+
+
+def search_char_in_tree(node, char):
+    for child in node.children:
+        name = child.name
+        if name == char or name[0] == char:
+            return child
+    return False
 
 
 gst = makeTree2(data)
 kata = input("masukkan kata yang ingin dicari: ")
-print(searchTree(gst, kata))
+traverseResult, traverseResult2 = searchTree(gst, kata)
+for node in traverseResult2:
+    print(node)
+# print(gst)
 
 # def makeTree(arrayInput):
 #     root = Node("root")
