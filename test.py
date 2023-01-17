@@ -1,6 +1,30 @@
 from anytree import *
+import pymysql.cursors
+import re
 
-# compare string adalah fungsi untuk membandingkan 2 string apakah memiliki substring yang sama
+
+def connectDB():
+    # Connect to the database
+    connection = pymysql.connect(host='localhost',
+                                 user='root',
+                                 password='',
+                                 database='crawler',
+                                 charset='utf8mb4',
+                                 cursorclass=pymysql.cursors.DictCursor)
+    with connection:
+        with connection.cursor() as cursor:
+            # Read a single record
+            cursor.execute(
+                "SELECT id_pagecontent, title FROM page_information LIMIT 5")
+            result = cursor.fetchall()
+            # print(result)
+        for data in result:
+            print(data)
+            data["title"] = data["title"].lower()
+            data["title"] = re.sub(
+                r'\?|\.|\!|\/|\;|\:|\-', "", data["title"])
+            print(data)
+        return result
 
 
 def nodeToString(node):
@@ -16,6 +40,7 @@ def nodeToString(node):
     return node
 
 
+# compare string adalah fungsi untuk membandingkan 2 string apakah memiliki substring yang sama
 def compare_strings(a, b):
     # a itu node, b itu sufiks yang mau ditambah
     if a is None or b is None:  # jika salah satu dari 2 string adalah none maka return False
@@ -70,38 +95,38 @@ def addChild(suf, parent, tree, index):
     except StopIteration:
         # Handle the case where there are no matching nodes
         print("No matching nodes found")
-    print("res", result)
-    print("tree, ", tree)
-    print("parent, ", parent)
+    # print("res", result)
+    # print("tree, ", tree)
+    # print("parent, ", parent)
     children = result.children
     for child in children:
-        print("+++++++++++++++++++++++++++++++++++++++++++++=")
-        print("suf: ", suf)
-        print("node: ", child.name)
+        # print("+++++++++++++++++++++++++++++++++++++++++++++=")
+        # print("suf: ", suf)
+        # print("node: ", child.name)
         status, sameString, parentNameCut, sufCut = compare_strings(
             child.name, suf)
         if status == False:
-            print("cek next node")
+            # print("cek next node")
             continue
         if parentNameCut == "":
-            print("normal")
+            # print("normal")
             if sufCut == "":
-                print(child)
-                print("node index =", type(child.index))
-                print("index saat ini: ", index)
+                # print(child)
+                # print("node index =", type(child.index))
+                # print("index saat ini: ", index)
                 if index not in child.index:
                     child.index.append(index)
                 return tree
             return addChild(suf=sufCut, parent=child.name, tree=child, index=index)
         child.name = sameString
         if child.children == []:
-            print("gaada anak")
+            # print("gaada anak")
             Node(sufCut, parent=child, index=[index])
             Node(parentNameCut, parent=child, index=child.index)
             return tree
         # if child.children != []:
-        print("ada anak")
-        print("anak siapa: ", child.name)
+        # print("ada anak")
+        # print("anak siapa: ", child.name)
         nodeParentCut = Node(parentNameCut, index=child.index)
         nodeParentCut.children = child.children
         # print("-------------------------------------------")
@@ -118,8 +143,8 @@ def addChild(suf, parent, tree, index):
 def makeTree2(data):
     root = Node("root")
     for title in data:
-        for word in title["judul"].split():
-            wordIndex = title["id"]
+        for word in title["title"].split():
+            wordIndex = title["id_pagecontent"]
             word += "$"
             for i in range(len(word)):
                 print("=================================================")
@@ -127,7 +152,7 @@ def makeTree2(data):
                 addChild(suf=suf, parent="root", tree=root, index=wordIndex)
             for pre, fill, node in RenderTree(root):
                 print("%s%s" % (pre, node.name))
-            # print(RenderTree(root))
+            print(RenderTree(root))
     return root
 
 
@@ -140,8 +165,8 @@ def searchTree(root, arrWord):
     #         # print("node ketemu: ", node.name)
     #         print("node index: ", node.index)
     #         return "node ketemu di tree"
+    traverse = []
     traverseResult = []
-    traverseResult2 = []
     for word in arrWord.split():
         result = []
         tree = root
@@ -151,10 +176,10 @@ def searchTree(root, arrWord):
             find = search_char_in_tree(tree, char)
             if find:
                 tree = find
-                traverseResult.append(find)
+                traverse.append(find)
                 result.append(find)
-        traverseResult2.append(result[-1])
-    return traverseResult, traverseResult2
+        traverseResult.append(result[-1])
+    return traverse, traverseResult
 
 
 def search_char_in_tree(node, char):
@@ -165,11 +190,21 @@ def search_char_in_tree(node, char):
     return False
 
 
-gst = makeTree2(data)
+def makePreIgst(tree, f):
+    root = Node("preIGSTroot")
+    amountSameIndex = 0
+    for node in tree.children:
+        print(node)
+
+
+gst = makeTree2(connectDB())
 kata = input("masukkan kata yang ingin dicari: ")
-traverseResult, traverseResult2 = searchTree(gst, kata)
-for node in traverseResult2:
-    print(node)
+traverse, traverseResult = searchTree(gst, kata)
+print(traverse)
+print(traverseResult)
+# connectDB()
+# for node in traverseResult:
+#     print(node)
 # print(gst)
 
 # def makeTree(arrayInput):
