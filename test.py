@@ -237,12 +237,35 @@ def checkList(index, arr):
     return False, 0
 
 
-gst = makeTree2(data)
+def rankResult(result):
+    print(result)
+    allListDocument = []
+    for node in result:
+        allListDocument.append(node.index)
+    print(allListDocument)
+    listCount = []
+    for listDocument in allListDocument:
+        for idx in listDocument:
+            status, sameIdx = checkList(idx, listCount)
+            if len(listCount) > 0 and status == True:
+                listCount[sameIdx]["count"] += 1
+                continue
+            obj = {
+                "index": idx,
+                "count": 1
+            }
+            listCount.append(obj)
+    rankedList = sorted(listCount, key=lambda d: d['count'], reverse=True)
+    return rankedList
+
+
+gst = makeTree2(connectDB())
 kata = input("masukkan kata yang ingin dicari: ")
-frekuensi = int(input("masukkan frekuensi yang ingin dicari: "))
-searchWithFrequency(gst, kata, frekuensi)
-# traverse, traverseResult, resultTree = searchTree(gst, kata)
-# # connectDB()
+# frekuensi = int(input("masukkan frekuensi yang ingin dicari: "))
+# searchWithFrequency(gst, kata, frekuensi)
+traverse, traverseResult, resultTree = searchTree(gst, kata)
+connectDB()
+print(rankResult(traverseResult))
 # print(traverse)
 # for node in traverseResult:
 #     print(node)
