@@ -15,11 +15,11 @@ def connectDB():
         with connection.cursor() as cursor:
             # Read a single record
             cursor.execute(
-                "SELECT id_pagecontent, title FROM page_information LIMIT 5")
+                "SELECT id_pagecontent, title FROM page_information LIMIT 10")
             result = cursor.fetchall()
             # print(result)
         for data in result:
-            print(data)
+            # print(data)
             data["title"] = data["title"].lower()
             data["title"] = re.sub(
                 r'\?|\.|\!|\/|\;|\:|\-', "", data["title"])
@@ -67,21 +67,18 @@ def compare_strings(a, b):
 
 data = [
     {
-        "id": 1,
-        "judul": "cata"
+        "id_pagecontent": 1,
+        "title": "cata"
     },
     {
-        "id": 2,
-        "judul": "hatt"
+        "id_pagecontent": 2,
+        "title": "actttt"
     },
     {
-        "id": 3,
-        "judul": "actttt"
+        "id_pagecontent": 3,
+        "title": "hatt"
     },
 ]
-# wordInput = input("masukkan kata: ")
-# arrWord = wordInput.split()
-# print(arrWord)
 
 
 def addChild(suf, parent, tree, index):
@@ -147,27 +144,19 @@ def makeTree2(data):
             wordIndex = title["id_pagecontent"]
             word += "$"
             for i in range(len(word)):
-                print("=================================================")
                 suf = word[i:]
                 addChild(suf=suf, parent="root", tree=root, index=wordIndex)
             for pre, fill, node in RenderTree(root):
                 print("%s%s" % (pre, node.name))
-            print(RenderTree(root))
+            # print(RenderTree(root))
     return root
 
 
 def searchTree(root, arrWord):
-    # print(RenderTree(tree))
-    # for node in PostOrderIter(tree):
-    #     # print(nodeToString(node))
-    #     if nodeToString(node) == string:
-    #         print(nodeToString(node))
-    #         # print("node ketemu: ", node.name)
-    #         print("node index: ", node.index)
-    #         return "node ketemu di tree"
     traverse = []
     traverseResult = []
     for word in arrWord.split():
+        word = word.lower()
         result = []
         tree = root
         word += "$"
@@ -179,7 +168,7 @@ def searchTree(root, arrWord):
                 traverse.append(find)
                 result.append(find)
         traverseResult.append(result[-1])
-    return traverse, traverseResult
+    return traverse, traverseResult, tree
 
 
 def search_char_in_tree(node, char):
@@ -190,22 +179,77 @@ def search_char_in_tree(node, char):
     return False
 
 
-def makePreIgst(tree, f):
-    root = Node("preIGSTroot")
-    amountSameIndex = 0
-    for node in tree.children:
+def searchWithFrequency(tree, p, f):
+    traverse = []
+    traverseResult = []
+    word = p.lower()
+    result = []
+    tree = tree
+    for i in range(len(word)):
+        char = word[i]
+        find = search_char_in_tree(tree, char)
+        if find:
+            tree = find
+            traverse.append(find)
+            result.append(find)
+    traverseResult.append(result[-1])
+    # print(traverse)
+    # for node in traverseResult:
+    #     print(node)
+    for pre, fill, node in RenderTree(tree):
+        print("%s%s" % (pre, node.name))
+    print(RenderTree(tree))
+    sameAmount = 0
+    allListDocument = []
+    for node in PostOrderIter(tree):
+        if "$" not in node.name:
+            continue
         print(node)
+        allListDocument.append(node.index)
+    print(allListDocument)
+    listCount = []
+    for listDocument in allListDocument:
+        for idx in listDocument:
+            print("-------")
+            print(listCount)
+            status, sameIdx = checkList(idx, listCount)
+            if len(listCount) > 0 and status == True:
+                listCount[sameIdx]["count"] += 1
+                continue
+            obj = {
+                "index": idx,
+                "count": 1
+            }
+            listCount.append(obj)
+    print(listCount)
+    for indexCount in listCount:
+        if indexCount["count"] >= f:
+            sameAmount += 1
+    print(sameAmount)
+    tree.count = sameAmount
+    print(RenderTree(tree))
 
 
-gst = makeTree2(connectDB())
+def checkList(index, arr):
+    for i in range(len(arr)):
+        if arr[i]["index"] == index:
+            return True, i
+    return False, 0
+
+
+gst = makeTree2(data)
 kata = input("masukkan kata yang ingin dicari: ")
-traverse, traverseResult = searchTree(gst, kata)
-print(traverse)
-print(traverseResult)
-# connectDB()
+frekuensi = int(input("masukkan frekuensi yang ingin dicari: "))
+searchWithFrequency(gst, kata, frekuensi)
+# traverse, traverseResult, resultTree = searchTree(gst, kata)
+# # connectDB()
+# print(traverse)
 # for node in traverseResult:
 #     print(node)
+# print(traverseResult)
+# connectDB()
 # print(gst)
+
 
 # def makeTree(arrayInput):
 #     root = Node("root")
