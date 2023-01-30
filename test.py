@@ -1,29 +1,69 @@
 from anytree import *
 import pymysql.cursors
 import re
+import pickle
 
 
-def connectDB():
+def updateTitle():
     # Connect to the database
     connection = pymysql.connect(host='localhost',
                                  user='root',
                                  password='',
-                                 database='crawler',
+                                 database='crawl2',
                                  charset='utf8mb4',
-                                 cursorclass=pymysql.cursors.DictCursor)
+                                 cursorclass=pymysql.cursors.DictCursor,
+                                 autocommit=True)
     with connection:
         with connection.cursor() as cursor:
-            # Read a single record
             cursor.execute(
-                "SELECT id_pagecontent, title FROM page_information LIMIT 10")
+                "SELECT id_page, title FROM page_information")
             result = cursor.fetchall()
-            # print(result)
         for data in result:
-            # print(data)
+            id_page = data["id_page"]
             data["title"] = data["title"].lower()
-            data["title"] = re.sub(
-                r'\?|\.|\!|\/|\;|\:|\-', "", data["title"])
-            print(data)
+            data["title"] = re.sub('[^A-Za-z0-9 ]+', "", data["title"])
+            title = data["title"]
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    "UPDATE page_information set title = %s where id_page = %s", (title, id_page))
+        return result
+
+
+def getResult(result):
+    connection = pymysql.connect(host='localhost',
+                                 user='root',
+                                 password='',
+                                 database='crawl2',
+                                 charset='utf8mb4',
+                                 cursorclass=pymysql.cursors.DictCursor,
+                                 autocommit=True)
+    with connection:
+        for page in result:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT id_page, title, url FROM page_information WHERE id_page = %s", (page["index"]))
+                data = cursor.fetchall()
+                print("query: " + page["query"])
+                print(str(result.index(page)+1) + ". " + data[0]["title"])
+                print(data[0]["url"])
+                print("\n")
+
+
+def getPage():
+    connection = pymysql.connect(host='localhost',
+                                 user='root',
+                                 password='',
+                                 database='crawl2',
+                                 charset='utf8mb4',
+                                 cursorclass=pymysql.cursors.DictCursor,
+                                 autocommit=True)
+    with connection:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT id_page, title FROM page_information")
+            result = cursor.fetchall()
+            # for data in result:
+            #     print(data)
         return result
 
 
@@ -63,22 +103,6 @@ def compare_strings(a, b):
         sufCut = b.removeprefix(sameString)
         i += 1
     return status, sameString, parentNameCut, sufCut
-
-
-data = [
-    {
-        "id_pagecontent": 1,
-        "title": "cata"
-    },
-    {
-        "id_pagecontent": 2,
-        "title": "actttt"
-    },
-    {
-        "id_pagecontent": 3,
-        "title": "hatt"
-    },
-]
 
 
 def addChild(suf, parent, tree, index):
@@ -137,26 +161,45 @@ def addChild(suf, parent, tree, index):
     return tree
 
 
-def makeTree2(data):
+def makeTree(data):
     root = Node("root")
     for title in data:
         for word in title["title"].split():
-            wordIndex = title["id_pagecontent"]
+            wordIndex = title["id_page"]
             word += "$"
             for i in range(len(word)):
                 suf = word[i:]
                 addChild(suf=suf, parent="root", tree=root, index=wordIndex)
-            for pre, fill, node in RenderTree(root):
-                print("%s%s" % (pre, node.name))
+            # for pre, fill, node in RenderTree(root):
+            #     print("%s%s" % (pre, node.name))
+            # print(RenderTree(root))
+    return root
+
+
+def updateTree(tree, data):
+    root = tree
+    for title in data:
+        for word in title["title"].split():
+            wordIndex = title["id_page"]
+            word += "$"
+            for i in range(len(word)):
+                suf = word[i:]
+                addChild(suf=suf, parent="root", tree=root, index=wordIndex)
+            # for pre, fill, node in RenderTree(root):
+            #     print("%s%s" % (pre, node.name))
             # print(RenderTree(root))
     return root
 
 
 def searchTree(root, arrWord):
     traverse = []
-    traverseResult = []
+    searchResult = []
     for word in arrWord.split():
         word = word.lower()
+        dictResult = {
+            "query": word,
+            "result": ""
+        }
         result = []
         tree = root
         word += "$"
@@ -167,8 +210,9 @@ def searchTree(root, arrWord):
                 tree = find
                 traverse.append(find)
                 result.append(find)
-        traverseResult.append(result[-1])
-    return traverse, traverseResult, tree
+        dictResult["result"] = result[-1]
+        searchResult.append(dictResult)
+    return traverse, searchResult
 
 
 def search_char_in_tree(node, char):
@@ -238,121 +282,103 @@ def checkList(index, arr):
 
 
 def rankResult(result):
-    print(result)
+    # print(result)
     allListDocument = []
-    for node in result:
-        allListDocument.append(node.index)
-    print(allListDocument)
     listCount = []
-    for listDocument in allListDocument:
-        for idx in listDocument:
+    for i in result:
+        allListDocument.append(i["result"].index)
+    # print(allListDocument)
+    for i in range(len(allListDocument)):
+        for idx in allListDocument[i]:
             status, sameIdx = checkList(idx, listCount)
             if len(listCount) > 0 and status == True:
                 listCount[sameIdx]["count"] += 1
+                listCount[sameIdx]["query"] += " " + result[i]["query"]
                 continue
             obj = {
                 "index": idx,
-                "count": 1
+                "count": 1,
+                "query": result[i]["query"]
             }
             listCount.append(obj)
     rankedList = sorted(listCount, key=lambda d: d['count'], reverse=True)
+    # print(rankedList)
     return rankedList
 
 
-gst = makeTree2(connectDB())
-kata = input("masukkan kata yang ingin dicari: ")
+def storeData(tree):
+    # initializing data to be stored in file
+
+    # Its important to use binary mode
+    dbfile = open('gst', 'ab')
+
+    # source, destination
+    pickle.dump(tree, dbfile)
+    dbfile.close()
+
+
+def loadData():
+    # for reading also binary mode is important
+    dbfile = open('gst', 'rb')
+    db = pickle.load(dbfile)
+    dbfile.close()
+    # print(RenderTree(db))
+    return db
+
+
+def updateData(newgst):
+    with open('gst', 'rb') as file:
+        gst = pickle.load(file)
+        file.close()
+    gst = newgst
+    with open('gst', 'wb') as file:
+        pickle.dumps(gst, file)
+        file.close()
+
+
+data = [
+    {
+        "id_page": 1,
+        "title": "cata"
+    },
+    {
+        "id_page": 2,
+        "title": "actttt"
+    },
+    {
+        "id_page": 3,
+        "title": "hatt"
+    },
+]
+
+
+def main():
+    read = loadData()
+    getPage()
+    kata = input("masukkan kata yang ingin dicari: ")
+    if (kata == ""):
+        print("Query tidak boleh kosong")
+        main()
+    traverse, traverseResult = searchTree(read, kata)
+    rankedResult = rankResult(traverseResult)
+    # print(rankedResult)
+    print("Hasil pencarian: \n")
+    getResult(rankedResult)
+
+
+gst = makeTree(getPage())
+store = storeData(gst)
+main()
+# getPage()
+# updateTitle()
+# newgst = updateTree(gst, connectDB())
+# updateData(newgst)
+# loadData()
 # frekuensi = int(input("masukkan frekuensi yang ingin dicari: "))
 # searchWithFrequency(gst, kata, frekuensi)
-traverse, traverseResult, resultTree = searchTree(gst, kata)
-connectDB()
-print(rankResult(traverseResult))
 # print(traverse)
 # for node in traverseResult:
 #     print(node)
 # print(traverseResult)
 # connectDB()
 # print(gst)
-
-
-# def makeTree(arrayInput):
-#     root = Node("root")
-#     for word in arrayInput:
-#         word += "$"
-#         for i in range(len(word)):
-#             # children = root.children
-#             # print(children)
-#             addSuf = False
-#             suf = word[i:]
-#             # print(suf)
-#             for node in LevelOrderIter(root, maxlevel=2):
-#                 name = str(node.name)
-#                 # print(name)
-#                 if name != "root" and name != "$":
-#                     status, sameString, parentNameCut, sufCut = compare_strings(
-#                         name, suf)
-#                     # print(status)
-#                     if status == True:
-#                         print("suf: ", suf)
-#                         print("node yang sama: ", node.name)
-#                         print("ortunya: ", node.parent.name)
-#                         print("anaknya: ", node.children)
-#                         if node.children == []:
-#                             print("anak kosong")
-#                             if node.parent != root:
-#                                 # print("ini")
-#                                 break
-#                             # else:
-#                             # print("suf: ", suf)
-#                             # print("edge: ", node.name)
-#                             node.name = sameString
-#                             pastSuffix = name.removeprefix(sameString)
-#                             suf = suf.removeprefix(sameString)
-#                             if suf != "":
-#                                 Node(suf, parent=node)
-#                             if pastSuffix != "":
-#                                 Node(pastSuffix, parent=node)
-#                             addSuf = True
-#                         if node.children != []:
-#                             print("ada anak")
-#                             if node.parent != root:
-#                                 break
-#                             # else:
-#                             # print(suf)
-#                             # print("edge: ", node.name)
-#                             node.name = sameString
-#                             if name.removeprefix(sameString) != "":
-#                                 pastSuffix = Node(
-#                                     name.removeprefix(sameString))
-#                                 pastSuffix.children = node.children
-#                                 suf = suf.removeprefix(sameString)
-#                                 if suf != "":
-#                                     pastSuffix.parent = node
-#                                     Node(suf, parent=node)
-#                                 addSuf = True
-#                             else:
-#                                 suf = suf.removeprefix(sameString)
-#                                 if suf != "":
-#                                     Node(suf, parent=node)
-#                                 addSuf = True
-#                     # elif status == False and suf in children:
-#                     #     break
-#                     # else:
-#                     #     Node(suf, parent=root)
-#             if addSuf == False:
-#                 Node(suf, parent=root)
-#             for pre, fill, node in RenderTree(root):
-#                 print("%s%s" % (pre, node.name))
-#     # print(children)
-
-
-# print(children)
-# print(suf)
-# suftree.append(suf)
-# print(node)
-# print(list(root.children))
-# print(suftree)
-
-# print(RenderTree(root))
-# print(compare_strings("g", "g$"))
-# for pre, fill, node in RenderTree(root):
-# print("%s%s" % (pre, node.name))
