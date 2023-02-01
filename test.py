@@ -9,7 +9,7 @@ def updateTitle():
     connection = pymysql.connect(host='localhost',
                                  user='root',
                                  password='',
-                                 database='crawl2',
+                                 database='crawl3',
                                  charset='utf8mb4',
                                  cursorclass=pymysql.cursors.DictCursor,
                                  autocommit=True)
@@ -19,13 +19,13 @@ def updateTitle():
                 "SELECT id_page, title FROM page_information")
             result = cursor.fetchall()
         for data in result:
-            id_page = data["id_page"]
+            # id_page = data["id_page"]
             data["title"] = data["title"].lower()
             data["title"] = re.sub('[^A-Za-z0-9 ]+', "", data["title"])
-            title = data["title"]
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    "UPDATE page_information set title = %s where id_page = %s", (title, id_page))
+            # title = data["title"]
+            # with connection.cursor() as cursor:
+            #     cursor.execute(
+            #         "UPDATE page_information set title = %s where id_page = %s", (title, id_page))
         return result
 
 
@@ -33,7 +33,7 @@ def getResult(result):
     connection = pymysql.connect(host='localhost',
                                  user='root',
                                  password='',
-                                 database='crawl2',
+                                 database='crawl3',
                                  charset='utf8mb4',
                                  cursorclass=pymysql.cursors.DictCursor,
                                  autocommit=True)
@@ -366,8 +366,8 @@ def main():
     getResult(rankedResult)
 
 
-gst = makeTree(getPage())
-store = storeData(gst)
+# gst = makeTree(updateTitle())
+# store = storeData(gst)
 main()
 # getPage()
 # updateTitle()
