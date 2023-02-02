@@ -22,7 +22,7 @@ def getTitle():
             # menjadikan title lower case untuk dimasukkan ke tree
             data["title"] = data["title"].lower()
             # cleaning title dari simbol untuk input tree
-            data["title"] = re.sub('[^A-Za-z0-9 ]+', "", data["title"])
+            data["title"] = re.sub('[^A-Za-z0-9 ]+', " ", data["title"])
         return result
 
 
@@ -350,7 +350,7 @@ def main():
     getResult(rankedResult)
 
 
-# gst = makeTree(updateTitle())
+# gst = makeTree(getTitle())
 # store = storeData(gst)
 main()
 # read = loadData()
