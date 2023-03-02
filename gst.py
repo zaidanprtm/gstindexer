@@ -2,6 +2,7 @@ from anytree import *
 import pymysql.cursors
 import re
 import pickle
+import time
 
 
 def getTitle():
@@ -16,13 +17,16 @@ def getTitle():
     with connection:
         with connection.cursor() as cursor:
             cursor.execute(
-                "SELECT id_page, title FROM page_information")
+                "SELECT id_page, title FROM page_information LIMIT 5")
             result = cursor.fetchall()
+        for data in result:
+            print(data)
         for data in result:
             # menjadikan title lower case untuk dimasukkan ke tree
             data["title"] = data["title"].lower()
             # cleaning title dari simbol untuk input tree
             data["title"] = re.sub('[^A-Za-z0-9 ]+', " ", data["title"])
+            print(data)
         return result
 
 
@@ -36,16 +40,17 @@ def getResult(result):
                                  cursorclass=pymysql.cursors.DictCursor,
                                  autocommit=True)
     with connection:
-        for page in result:
+        for i in range(5):
             with connection.cursor() as cursor:
                 cursor.execute(
-                    "SELECT id_page, title, url FROM page_information WHERE id_page = %s", (page["index"]))
-                data = cursor.fetchall()
-                # tampilkan data ke terminal
-                print("query: " + page["query"])
-                print(str(result.index(page)+1) + ". " + data[0]["title"])
-                print(data[0]["url"])
-                print("\n")
+                    "SELECT id_page, title, url FROM page_information WHERE id_page = %s", (result[i]["index"]))
+            data = cursor.fetchall()
+            # tampilkan data ke terminal
+            print("query: " + result[i]["query"])
+            print("count: " + str(result[i]["count"]))
+            print(str(i+1) + ". " + data[0]["title"])
+            print(data[0]["url"])
+            print("\n")
 
 
 def getPage():
@@ -64,19 +69,6 @@ def getPage():
             # for data in result:
             #     print(data)
         return result
-
-
-def nodeToString(node):
-    node = str(node)
-    delimiter = ","
-    index = node.index(delimiter)
-    node = node[:index]
-    # remove 12 first character on node
-    node = node[12:]
-    size = len(node)
-    node = node[:size-2]
-    node = node.replace("/", "")
-    return node
 
 
 # compare string adalah fungsi untuk membandingkan 2 string apakah memiliki substring yang sama
@@ -328,58 +320,44 @@ def loadData():
     return db
 
 
-def updateData(newgst):
-    with open('gst', 'rb') as file:
-        gst = pickle.load(file)
-        file.close()
-    gst = newgst
-    with open('gst', 'wb') as file:
-        pickle.dumps(gst, file)
-        file.close()
-
-
 def main():
+    # getTitle()
+    # gst = makeTree(getTitle())
+    # store = storeData(gst)
     read = loadData()
     kata = input("masukkan kata yang ingin dicari: ")
+    start = time.perf_counter()
     if (kata == ""):
         print("Query tidak boleh kosong")
         main()
-    traverse, traverseResult = searchTree(read, kata)
-    rankedResult = rankResult(traverseResult)
+    traverse, searchResult = searchTree(read, kata)
+    rankedResult = rankResult(searchResult)
+    done = time.perf_counter()
+    print(f"Waktu pencarian: {done - start:0.4f} detik")
     print("Hasil pencarian: \n")
     getResult(rankedResult)
 
 
-# gst = makeTree(getTitle())
-# store = storeData(gst)
 main()
-# read = loadData()
-# for pre, fill, node in RenderTree(read):
-#     print("%s%s" % (pre, node.name))
-# getPage()
-# updateTitle()
-# newgst = updateTree(gst, connectDB())
-# updateData(newgst)
-# loadData()
-# frekuensi = int(input("masukkan frekuensi yang ingin dicari: "))
-# searchWithFrequency(gst, kata, frekuensi)
-# print(traverse)
-# for node in traverseResult:
-#     print(node)
-# print(traverseResult)
-# connectDB()
-# print(gst)
-# data = [
-#     {
-#         "id_page": 1,
-#         "title": "cata"
-#     },
-#     {
-#         "id_page": 2,
-#         "title": "actttt"
-#     },
-#     {
-#         "id_page": 3,
-#         "title": "hatt"
-#     },
-# ]
+
+# def nodeToString(node):
+#     node = str(node)
+#     delimiter = ","
+#     index = node.index(delimiter)
+#     node = node[:index]
+#     # remove 12 first character on node
+#     node = node[12:]
+#     size = len(node)
+#     node = node[:size-2]
+#     node = node.replace("/", "")
+#     return node
+
+
+# def updateData(newgst):
+#     with open('gst', 'rb') as file:
+#         gst = pickle.load(file)
+#         file.close()
+#     gst = newgst
+#     with open('gst', 'wb') as file:
+#         pickle.dumps(gst, file)
+#         file.close()
