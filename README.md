@@ -1,5 +1,6 @@
 # Generalized Suffix Tree based Indexing Module
-
+Untuk membuat search engine diperlukan banyak komponen yang mendukung kebutuhan arsitektur search engine. Pada penelitian sebelumnya, komponen crawler berhasil dibuat oleh Muhammad Fathan Qoriiba dalam penelitiannya yang berjudul "Perancangan Crawler Sebagai Pendukung Pada Search Engine". Salah satu komponen dari search engine yang belum diimplementasikan adalah modul pengindeks atau indexer. Penelitian ini bertujuan untuk membuat modul pengindeks menggunakan struktur data Generalized Suffix Tree untuk keperluan pemeringkatan dokumen sekaligus melanjutkan rangkaian penelitian search engine. Proses pembentukan Generalized Suffix Tree dan seluruh program dibuat menggunakan bahasa Python. Hasil akhir dari penelitian ini adalah modul pengindeks berupa program console yang digunakan untuk melakukan pencarian dengan nilai Mean Average Precision dari 3 tester sebesar 0.658 dan struktur data Generalized Suffix Tree dengan kedalaman maksimal 11 level dan total jumlah daun sebanyak 34.573
+daun yang tersimpan dalam direktori yang sama.
 ### Requirement
 - Python 3.5+
 - Apache, MySQL
